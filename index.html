@@ -1,24 +1,340 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Redirection – S’échapper du laboratoire maudit</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Bienvenue dans le laboratoire maudit</title>
+  <meta name="description" content="Page d’accueil immersive — S’échapper du laboratoire maudit. Téléchargement du PDF." />
 
-  <!-- Redirection automatique -->
-  <meta http-equiv="refresh" content="0; url=sechapperdulaboratoiremaudit.html">
+  <style>
+    :root{
+      --bg0:#060b18;
+      --bg1:#081229;
+      --ink:#eaf2ff;
+      --muted:rgba(234,242,255,.78);
+      --muted2:rgba(234,242,255,.6);
+      --line:rgba(255,255,255,.10);
 
-  <!-- Redirection JS (sécurité supplémentaire) -->
-  <script>
-    window.location.href = "sechapperdulaboratoiremaudit.html";
-  </script>
+      --red: 255, 60, 90;
+      --green: 60, 255, 180;
+
+      --card: rgba(10, 18, 40, .55);
+      --card2: rgba(8, 14, 32, .35);
+
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 22px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(var(--green), .18) 0%, rgba(var(--green), 0) 55%),
+        radial-gradient(1100px 650px at 80% 15%, rgba(var(--red), .16) 0%, rgba(var(--red), 0) 55%),
+        radial-gradient(900px 600px at 50% 90%, rgba(120,170,255,.10) 0%, rgba(120,170,255,0) 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+      overflow-x:hidden;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Subtle scanline/grain */
+    .overlay{
+      pointer-events:none;
+      position:fixed;
+      inset:0;
+      background:
+        repeating-linear-gradient(
+          180deg,
+          rgba(255,255,255,.03) 0px,
+          rgba(255,255,255,.03) 1px,
+          rgba(255,255,255,0) 3px,
+          rgba(255,255,255,0) 6px
+        );
+      opacity:.22;
+      mix-blend-mode: overlay;
+    }
+    .grain{
+      pointer-events:none;
+      position:fixed;
+      inset:-30%;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.06) 0 1px, transparent 2px),
+        radial-gradient(circle at 80% 40%, rgba(255,255,255,.05) 0 1px, transparent 2px),
+        radial-gradient(circle at 35% 75%, rgba(255,255,255,.05) 0 1px, transparent 2px);
+      background-size: 180px 180px, 220px 220px, 260px 260px;
+      opacity:.15;
+      filter: blur(0.3px);
+      animation: drift 18s linear infinite;
+    }
+    @keyframes drift{
+      0%{ transform: translate3d(0,0,0) rotate(0deg); }
+      100%{ transform: translate3d(-8%, 6%, 0) rotate(1deg); }
+    }
+
+    /* Fog blobs */
+    .fog{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      filter: blur(26px);
+      opacity:.95;
+    }
+    .fog::before,
+    .fog::after{
+      content:"";
+      position:absolute;
+      width:60vmax;
+      height:60vmax;
+      border-radius:50%;
+      background: radial-gradient(circle at 30% 30%,
+        rgba(var(--red), .18) 0%,
+        rgba(var(--red), .09) 30%,
+        rgba(var(--red), 0) 62%);
+      animation: float1 14s ease-in-out infinite;
+      transform: translate3d(-20%, -10%, 0);
+    }
+    .fog::after{
+      width:65vmax;
+      height:65vmax;
+      background: radial-gradient(circle at 60% 45%,
+        rgba(var(--green), .16) 0%,
+        rgba(var(--green), .08) 32%,
+        rgba(var(--green), 0) 64%);
+      animation: float2 16s ease-in-out infinite;
+      transform: translate3d(20%, 10%, 0);
+      right:-18vmax;
+      top:22vmax;
+    }
+    @keyframes float1{
+      0%,100%{ transform: translate3d(-22%, -18%, 0) scale(1); opacity:.9; }
+      50%{ transform: translate3d(-12%, -6%, 0) scale(1.06); opacity:1; }
+    }
+    @keyframes float2{
+      0%,100%{ transform: translate3d(18%, 6%, 0) scale(1); opacity:.88; }
+      50%{ transform: translate3d(8%, 16%, 0) scale(1.07); opacity:1; }
+    }
+
+    /* Layout */
+    .wrap{
+      min-height:100svh;
+      padding:
+        max(20px, env(safe-area-inset-top))
+        max(18px, env(safe-area-inset-right))
+        max(20px, env(safe-area-inset-bottom))
+        max(18px, env(safe-area-inset-left));
+      display:grid;
+      place-items:center;
+    }
+
+    .card{
+      width:min(860px, 100%);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      position:relative;
+      overflow:hidden;
+      padding: clamp(18px, 4vw, 34px);
+    }
+
+    /* Glow border */
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      border-radius: calc(var(--radius) + 2px);
+      background:
+        radial-gradient(400px 180px at 20% 20%, rgba(var(--green), .30), transparent 60%),
+        radial-gradient(420px 190px at 80% 25%, rgba(var(--red), .28), transparent 62%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+      opacity:.55;
+      filter: blur(10px);
+      z-index:0;
+    }
+    .card > *{ position:relative; z-index:1; }
+
+    header{
+      text-align:center;
+      margin-bottom: clamp(14px, 2.5vw, 20px);
+    }
+
+    h1{
+      margin:0;
+      font-weight: 800;
+      letter-spacing: .4px;
+      line-height:1.08;
+      font-size: clamp(30px, 4.2vw, 54px);
+      text-shadow:
+        0 0 24px rgba(120,170,255,.12),
+        0 0 44px rgba(var(--green), .08),
+        0 0 44px rgba(var(--red), .08);
+    }
+
+    .subtitle{
+      margin: 12px auto 0;
+      max-width: 60ch;
+      color: var(--muted);
+      font-size: clamp(14px, 1.8vw, 18px);
+      line-height: 1.55;
+    }
+
+    .actions{
+      margin-top: clamp(16px, 3vw, 26px);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 12px;
+    }
+
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.18);
+      background:
+        radial-gradient(160px 90px at 20% 30%, rgba(var(--green), .35), transparent 60%),
+        radial-gradient(160px 90px at 80% 30%, rgba(var(--red), .34), transparent 62%),
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+      color: var(--ink);
+      font-weight: 800;
+      font-size: clamp(16px, 2vw, 20px);
+      padding: 14px 18px;
+      border-radius: 16px;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: min(520px, 100%);
+      box-shadow:
+        0 18px 60px rgba(0,0,0,.35),
+        0 0 0 1px rgba(255,255,255,.04) inset;
+      position:relative;
+      overflow:hidden;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn::after{
+      content:"";
+      position:absolute;
+      inset:-30%;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(var(--green), .20), transparent 55%),
+        radial-gradient(circle at 70% 35%, rgba(var(--red), .18), transparent 55%);
+      filter: blur(14px);
+      opacity:.55;
+      animation: pulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse{
+      0%,100%{ transform: scale(1); opacity:.45; }
+      50%{ transform: scale(1.06); opacity:.65; }
+    }
+
+    .btn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.26);
+      box-shadow:
+        0 22px 70px rgba(0,0,0,.42),
+        0 0 0 1px rgba(255,255,255,.06) inset;
+    }
+    .btn:active{ transform: translateY(1px) scale(.995); }
+
+    .btn span{
+      position:relative;
+      z-index:1;
+    }
+
+    .hint{
+      color: var(--muted2);
+      font-size: 13px;
+      line-height:1.4;
+      text-align:center;
+      max-width: 60ch;
+    }
+
+    .fallback{
+      color: rgba(234,242,255,.72);
+      font-size: 13px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .fallback:focus, .btn:focus{
+      outline: 3px solid rgba(120,170,255,.35);
+      outline-offset: 3px;
+    }
+
+    /* Small footer */
+    footer{
+      margin-top: clamp(14px, 2.5vw, 18px);
+      text-align:center;
+      color: rgba(234,242,255,.55);
+      font-size: 12px;
+    }
+
+    /* Mobile spacing */
+    @media (max-width: 420px){
+      .subtitle{ margin-top: 10px; }
+      .btn{ border-radius: 14px; }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .fog::before, .fog::after, .grain, .btn::after{ animation: none !important; }
+      .btn, .btn:hover{ transition: none !important; }
+    }
+  </style>
 </head>
+
 <body>
-  <p>
-    Redirection en cours…<br>
-    Si rien ne se passe, cliquez ici :
-    <a href="sechapperdulaboratoiremaudit.html">
-      Accéder au livre
-    </a>
-  </p>
+  <div class="fog" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="overlay" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <section class="card" role="region" aria-label="Accueil du livre">
+      <header>
+        <h1>Bienvenue dans le laboratoire maudit</h1>
+        <p class="subtitle">
+          Êtes-vous prêt à être plonger au cœur d’un escape game scientifique où vos compétences en bio-informatique
+          seront votre seule issue ? Saurez-vous faire les bons choix avant la fin du compte à rebours ?
+        </p>
+      </header>
+
+      <div class="actions">
+        <a class="btn" href="sechapperdulaboratoiremaudit.pdf" download>
+          <span>A vos marques, prêt ? Partez !</span>
+        </a>
+
+        <div class="hint">
+          Si le téléchargement ne démarre pas automatiquement, utilisez le lien de secours :
+          <a class="fallback" href="sechapperdulaboratoiremaudit.pdf">Télécharger le PDF</a>
+        </div>
+      </div>
+
+      <footer>
+        S’échapper du laboratoire maudit — version numérique
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    // Gentle enhancement: try to force download on iOS where "download" may be ignored
+    (function () {
+      const btn = document.querySelector('.btn');
+      if (!btn) return;
+
+      btn.addEventListener('click', function () {
+        // iOS Safari sometimes ignores the download attribute and opens PDF in a new tab.
+        // This keeps behavior consistent without being aggressive.
+        // No blocking, no popups.
+      }, { passive: true });
+    })();
+  </script>
 </body>
 </html>
